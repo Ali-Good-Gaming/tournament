@@ -45,15 +45,12 @@
         }
         
         body {
-            background: linear-gradient(135deg, var(--secondary), var(--dark));
+            background: linear-gradient(rgba(10, 10, 30, 0.85), rgba(10, 10, 30, 0.95)), url('images/background.jpg') center/cover no-repeat fixed;
             color: var(--light);
             min-height: 100vh;
             padding: 20px;
             position: relative;
             overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(255, 70, 85, 0.1) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(26, 26, 46, 0.8) 0%, transparent 30%);
         }
         
         .container {
@@ -278,6 +275,10 @@
             font-family: 'Rajdhani', sans-serif;
         }
         
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
@@ -331,6 +332,11 @@
             width: 100%;
             font-size: 1.1rem;
             transition: var(--transition);
+            color: white;
+        }
+        
+        .participant-name::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
         
         .participant-name:focus {
@@ -353,13 +359,6 @@
         
         .upload-photo-btn:hover {
             background: var(--primary);
-        }
-        
-        .photo-preview {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: bold;
-            color: var(--primary);
         }
         
         /* Сетка */
@@ -766,9 +765,6 @@
                 <button id="historyBtn" class="btn btn-secondary">
                     <i>📜</i> История турниров
                 </button>
-                <button id="instructionsBtn" class="btn btn-secondary">
-                    <i>❓</i> Как использовать
-                </button>
             </div>
             
             <div class="features">
@@ -987,7 +983,7 @@
             for (let i = 0; i < participantsCount; i++) {
                 const participant = state.tournament.participants[i] || {
                     id: i,
-                    name: `Участник ${i+1}`,
+                    name: '',
                     photo: null
                 };
                 
@@ -996,14 +992,11 @@
                 card.innerHTML = `
                     ${participant.photo ? 
                         `<img src="${participant.photo}" alt="Участник ${i+1}" class="participant-img">` : 
-                        `<div class="participant-img" style="display: flex; align-items: center; justify-content: center; font-size: 40px;">👤</div>`}
+                        `<div class="participant-img" style="display: flex; align-items: center; justify-content: center; font-size: 40px; background: rgba(0,0,0,0.3);">👤</div>`}
                     <input type="text" class="participant-name" 
                            placeholder="Участник ${i+1}" 
                            value="${participant.name}" 
                            data-id="${i}">
-                    ${participant.photo ? 
-                        `<div class="photo-preview">Фото загружено</div>` : 
-                        `<div class="photo-preview">Фото не загружено</div>`}
                     <input type="file" class="participant-photo" accept="image/*" data-id="${i}" style="display: none;">
                     <button class="upload-photo-btn" data-id="${i}">
                         ${participant.photo ? 'Изменить фото' : 'Загрузить фото'}
@@ -1044,7 +1037,7 @@
                     if (!state.tournament.participants[id]) {
                         state.tournament.participants[id] = {
                             id: parseInt(id),
-                            name: `Участник ${parseInt(id)+1}`,
+                            name: '',
                             photo: null
                         };
                     }
@@ -1055,13 +1048,19 @@
                     const card = e.target.closest('.participant-card');
                     if (card) {
                         const img = card.querySelector('.participant-img');
-                        const preview = card.querySelector('.photo-preview');
                         const btn = card.querySelector('.upload-photo-btn');
                         
-                        if (img) img.src = e.target.result;
-                        if (preview) {
-                            preview.textContent = 'Фото загружено';
-                            preview.style.color = '#4ade80';
+                        if (img) {
+                            if (img.tagName === 'IMG') {
+                                img.src = e.target.result;
+                            } else {
+                                // Заменяем div на img
+                                const newImg = document.createElement('img');
+                                newImg.src = e.target.result;
+                                newImg.className = 'participant-img';
+                                newImg.alt = `Участник ${parseInt(id)+1}`;
+                                img.replaceWith(newImg);
+                            }
                         }
                         if (btn) btn.textContent = 'Изменить фото';
                     }
@@ -1186,6 +1185,8 @@
                 
                 // Определить позицию в следующем матче
                 const position = match.id.split('-')[1] % 2 === 0 ? 'player1' : 'player2';
+                
+                // Установить игрока в следующем матче
                 nextMatch[position] = player;
             }
         }
